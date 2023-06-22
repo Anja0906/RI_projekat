@@ -1,12 +1,16 @@
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPoint
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.dragPosition = None
+        self.dragging = False
+        self.maximized = False
+        self.dragPos = QPoint()
         self.set_up()
 
         # Main widget and layout
@@ -19,14 +23,16 @@ class MainWindow(QMainWindow):
         self.sidebar_widget = QWidget(self)
         self.sidebar_layout = QVBoxLayout(self.sidebar_widget)
         self.set_sidebar_widget()
-        
+
         # Picture overview widget and layout
         self.image_label = QLabel('Odaberite sliku', self)
         self.set_picture_overview()
 
-        # Close button
+        # Resize and close buttons
         self.top_bar_layout = QHBoxLayout()
         self.close_button = QPushButton(self)
+        self.minimize_button = QPushButton(self)
+        self.maximize_button = QPushButton(self)
         self.set_close_button()
 
         # Window title
@@ -51,27 +57,38 @@ class MainWindow(QMainWindow):
         self.set_prompt()
 
     def mousePressEvent(self, event):
-        if (abs(event.pos().x() - self.width()) < 10 or
-                abs(event.pos().y() - self.height()) < 10):
-            self.dragging = True
-        else:
-            self.dragging = False
-        self.dragPosition = event.globalPos() - self.frameGeometry().topLeft()
+        if event.button() == Qt.LeftButton:
+            if not self.maximized:
+                if (abs(event.pos().x() - self.width()) < 10 or
+                        abs(event.pos().y() - self.height()) < 10):
+                    self.dragging = True
+                self.dragPos = event.globalPos() - self.pos()
+            event.accept()
 
     def mouseMoveEvent(self, event):
-        if self.dragging:
-            self.resize(event.globalPos().x() - self.pos().x(), event.globalPos().y() - self.pos().y())
+        if event.buttons() == Qt.LeftButton:
+            if self.dragging and not self.maximized:
+                self.resize(event.globalPos().x() - self.pos().x(), event.globalPos().y() - self.pos().y())
+            elif not self.maximized:
+                self.move(event.globalPos() - self.dragPos)
+            event.accept()
         else:
-            self.move(event.globalPos() - self.dragPosition)
-        event.accept()
+            if (abs(event.pos().x() - self.width()) < 10 or
+                    abs(event.pos().y() - self.height()) < 10):
+                self.setCursor(Qt.SizeBDiagCursor)
+            else:
+                self.setCursor(Qt.ArrowCursor)
+
+    def mouseReleaseEvent(self, event):
+        self.dragging = False
 
     def on_button_click(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Open Image", "", "Image Files (*.png *.jpg *.jpeg *.bmp)")
 
         if file_path:
             pixmap = QPixmap(file_path)
-            self.image_label.setPixmap(pixmap.scaled(self.image_label.width(), self.image_label.height()
-                                                     , Qt.KeepAspectRatio))
+            self.image_label.setPixmap(pixmap.scaled(self.image_label.width(), self.image_label.height(),
+                                                     Qt.KeepAspectRatio))
             # TODO: Ovde kod treba da pokupi sliku i da je sacuva
 
     def on_parse_click(self):
@@ -129,6 +146,16 @@ class MainWindow(QMainWindow):
         self.close_button.setIcon(QIcon('close_button.png'))  # Set your icon file here
         self.close_button.clicked.connect(self.close)
         self.close_button.setCursor(QCursor(Qt.PointingHandCursor))
+        self.minimize_button.setIcon(QIcon('minimize.png'))
+        self.minimize_button.setCursor(QCursor(Qt.PointingHandCursor))
+        self.minimize_button.setStyleSheet("border-style: none;")
+        self.maximize_button.setIcon(QIcon('maximize.png'))
+        self.maximize_button.setCursor(QCursor(Qt.PointingHandCursor))
+        self.maximize_button.setStyleSheet("border-style: none;")
+        self.minimize_button.clicked.connect(self.showMinimized)
+        self.maximize_button.clicked.connect(self.maximize_restore)
+        self.top_bar_layout.addWidget(self.minimize_button)
+        self.top_bar_layout.addWidget(self.maximize_button)
         self.top_bar_layout.addWidget(self.close_button)
 
     def set_content_label(self):
@@ -177,4 +204,11 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("background-color: white;")
         self.setWindowFlags(Qt.CustomizeWindowHint)
         self.setWindowFlags(Qt.FramelessWindowHint)
-        self.dragging = False
+
+    def maximize_restore(self):
+        if not self.maximized:
+            self.showMaximized()
+            self.maximized = True
+        else:
+            self.showNormal()
+            self.maximized = False
