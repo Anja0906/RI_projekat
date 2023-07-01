@@ -1,6 +1,6 @@
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import Qt, QPoint
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtCore import Qt, QPoint, QPointF
 
 
 class MainWindow(QMainWindow):
@@ -57,27 +57,32 @@ class MainWindow(QMainWindow):
         self.set_prompt()
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             if not self.maximized:
-                if (abs(event.pos().x() - self.width()) < 10 or
-                        abs(event.pos().y() - self.height()) < 10):
+                if (abs(event.position().x() - self.width()) < 10 or
+                        abs(event.position().y() - self.height()) < 10):
                     self.dragging = True
-                self.dragPos = event.globalPos() - self.pos()
+                self.dragPos = event.globalPosition().toPoint() - self.pos()
             event.accept()
 
     def mouseMoveEvent(self, event):
-        if event.buttons() == Qt.LeftButton:
+        if event.buttons() & Qt.MouseButton.LeftButton:
             if self.dragging and not self.maximized:
-                self.resize(event.globalPos().x() - self.pos().x(), event.globalPos().y() - self.pos().y())
+                self.resize(event.globalPosition().toPoint().x() - self.position().x(), event.globalPosition().toPoint().y() - self.position().y())
             elif not self.maximized:
-                self.move(event.globalPos() - self.dragPos)
+                self.move((event.globalPosition() - QPointF(self.dragPos)).toPoint())
             event.accept()
         else:
-            if (abs(event.pos().x() - self.width()) < 10 or
-                    abs(event.pos().y() - self.height()) < 10):
-                self.setCursor(Qt.SizeBDiagCursor)
+            if (abs(event.position().x() - self.width()) < 10 or
+                    abs(event.position().y() - self.height()) < 10):
+                self.setCursor(Qt.CursorShape.SizeBDiagCursor)
             else:
-                self.setCursor(Qt.ArrowCursor)
+                self.setCursor(Qt.CursorShape.ArrowCursor)
+            if (abs(event.position().x() - self.width()) < 10 or
+                    abs(event.position().y() - self.height()) < 10):
+                self.setCursor(Qt.CursorShape.SizeBDiagCursor)
+            else:
+                self.setCursor(Qt.CursorShape.ArrowCursor)
 
     def mouseReleaseEvent(self, event):
         self.dragging = False
@@ -88,7 +93,7 @@ class MainWindow(QMainWindow):
         if file_path:
             pixmap = QPixmap(file_path)
             self.image_label.setPixmap(pixmap.scaled(self.image_label.width(), self.image_label.height(),
-                                                     Qt.KeepAspectRatio))
+                                                     Qt.AspectRatioMode.KeepAspectRatio))
             # TODO: Ovde kod treba da pokupi sliku i da je sacuva
 
     def on_parse_click(self):
@@ -120,7 +125,7 @@ class MainWindow(QMainWindow):
     def set_sidebar_widget(self):
         self.sidebar_widget.setMinimumWidth(200)
         self.sidebar_widget.setStyleSheet("background-color: #384061;")
-        self.sidebar_layout.setAlignment(Qt.AlignCenter)
+        self.sidebar_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.sidebar_layout.setContentsMargins(0, 0, 0, 0)
         self.sidebar_layout.setSpacing(0)
         self.main_layout.addWidget(self.sidebar_widget)
@@ -135,7 +140,7 @@ class MainWindow(QMainWindow):
                             padding: 5px;
                         """)
         self.image_label.setMinimumHeight(250)
-        self.image_label.setAlignment(Qt.AlignCenter)
+        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout = QGridLayout()
         layout.addWidget(self.image_label, 0, 0)
         layout.setRowStretch(0, 1)
@@ -145,12 +150,12 @@ class MainWindow(QMainWindow):
         self.close_button.setStyleSheet("border-style: none;")
         self.close_button.setIcon(QIcon('close_button.png'))  # Set your icon file here
         self.close_button.clicked.connect(self.close)
-        self.close_button.setCursor(QCursor(Qt.PointingHandCursor))
+        self.close_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.minimize_button.setIcon(QIcon('minimize.png'))
-        self.minimize_button.setCursor(QCursor(Qt.PointingHandCursor))
+        self.minimize_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.minimize_button.setStyleSheet("border-style: none;")
         self.maximize_button.setIcon(QIcon('maximize.png'))
-        self.maximize_button.setCursor(QCursor(Qt.PointingHandCursor))
+        self.maximize_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.maximize_button.setStyleSheet("border-style: none;")
         self.minimize_button.clicked.connect(self.showMinimized)
         self.maximize_button.clicked.connect(self.maximize_restore)
@@ -160,7 +165,7 @@ class MainWindow(QMainWindow):
 
     def set_content_label(self):
         self.content_label.setStyleSheet("font: bold 25px; color: white")
-        self.content_label.setAlignment(Qt.AlignCenter)
+        self.content_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     def button_add_picture_init(self):
         self.button_add_picture.setStyleSheet("""
@@ -172,7 +177,7 @@ class MainWindow(QMainWindow):
                         """)
         self.button_add_picture.setFixedHeight(60)
         self.button_add_picture.setFixedWidth(180)
-        self.button_add_picture.setCursor(QCursor(Qt.PointingHandCursor))
+        self.button_add_picture.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.button_add_picture.clicked.connect(self.on_button_click)
         self.sidebar_layout.addWidget(self.button_add_picture)
 
@@ -185,13 +190,13 @@ class MainWindow(QMainWindow):
                                     margin: 10px;
                                 """)
         self.button_parse_text.setFixedHeight(60)
-        self.button_parse_text.setCursor(QCursor(Qt.PointingHandCursor))
+        self.button_parse_text.setCursor(Qt.CursorShape.PointingHandCursor)
         self.button_parse_text.setFixedWidth(180)
         self.button_parse_text.clicked.connect(self.on_parse_click)
         self.sidebar_layout.addWidget(self.button_parse_text)
 
     def main_part_init(self):
-        self.content_layout.setAlignment(Qt.AlignTop)
+        self.content_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.content_layout.addLayout(self.top_bar_layout, 1)
         self.content_layout.addWidget(self.content_label, 1)
         self.main_layout.addWidget(self.sidebar_widget, 2)
@@ -202,8 +207,9 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Program za citanje rukopisa")
         self.setGeometry(100, 100, 1000, 850)
         self.setStyleSheet("background-color: white;")
-        self.setWindowFlags(Qt.CustomizeWindowHint)
-        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.setWindowFlag(Qt.WindowType.CustomizeWindowHint)
+        self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
+
 
     def maximize_restore(self):
         if not self.maximized:
