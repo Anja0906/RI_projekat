@@ -207,8 +207,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Program za citanje rukopisa")
         self.setGeometry(100, 100, 1000, 850)
         self.setStyleSheet("background-color: white;")
-        self.setWindowFlag(Qt.WindowType.CustomizeWindowHint)
-        self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
+        self.setWindowFlags(Qt.WindowType.CustomizeWindowHint)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
 
 
     def maximize_restore(self):
