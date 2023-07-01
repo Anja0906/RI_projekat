@@ -1,7 +1,11 @@
+import cv2
 import numpy as np
 import keras
+from PIL import Image
 from keras.callbacks import CSVLogger
 from keras.datasets import mnist
+from keras.saving.saving_api import load_model
+from keras.utils import img_to_array
 from sklearn.metrics import confusion_matrix
 from keras.layers import Input, Conv2D, MaxPooling2D, Dense, Flatten, Dropout
 from keras.models import Sequential
@@ -120,6 +124,83 @@ def main():
     print("Confusion matrix for recognition model:")
     print(cm_recognition)
 
+
+def load_image(image_path):
+    # Load the image
+    img = cv2.imread(image_path)
+
+    # Convert the image to grayscale
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Resize the image to 28x28
+    resized = cv2.resize(gray, (28, 28))
+
+    # Reshape the image to be (28, 28, 1)
+    reshaped = np.reshape(resized, (28, 28, 1))
+
+    return reshaped
+
+
+def predict_image(image_path):
+    model_boxing = define_model_boxing()
+    model_recognition = define_model_recognition()
+    original_image = load_image(image_path)
+    bounding_boxes = model_boxing.predict(np.array([original_image]))
+
+    predictions = []
+    for box in bounding_boxes:
+        cropped_image = original_image[int(box[0]):int(box[2]), int(box[1]):int(box[3])]
+        cropped_image = cropped_image / 255.0
+        print(cropped_image.shape)
+        result_recognition = model_recognition.predict(np.array([cropped_image]))
+        label_recognition = np.argmax(result_recognition, axis=1)
+        predictions.append(label_recognition)
+
+    return predictions
+
+
+# load models
+boxing_model = load_model('RI2023/Resources/Models/model_learn.hdf5')
+recognition_model = load_model('RI2023/Resources/Models/model_valid.hdf5')
+
+
+# Define the function
+def predict_image2(image_path):
+    # Open the image file
+    img = Image.open(image_path).convert('L')
+
+    # Resize the image to match the input size expected by the boxing model
+    img = img.resize((28, 28))
+
+    # Convert the image to an array and expand dimensions to match the model's expected input
+    img_array = np.expand_dims(img_to_array(img), axis=0)
+
+    # Normalize the image array
+    img_array /= 255.0
+
+    # Get the bounding box by predicting with the boxing model
+    box = boxing_model.predict(img_array)
+
+    # Convert the bounding box coordinates to integer
+    box = [int(x) for x in box[0]]
+
+    # Crop the image with the bounding box (format: ymin, xmin, ymax, xmax)
+    cropped_image = img.crop((box[1], box[0], box[3], box[2]))
+
+    # Resize the cropped image to match the input size expected by the recognition model
+    cropped_image = cropped_image.resize((28, 28))
+
+    # Convert the cropped image to an array and expand dimensions to match the model's expected input
+    cropped_image_array = np.expand_dims(img_to_array(cropped_image), axis=0)
+
+    # Normalize the cropped image array
+    cropped_image_array /= 255.0
+
+    # Get the recognized digit by predicting with the recognition model
+    digit = recognition_model.predict(cropped_image_array)
+
+    return digit
+
 if __name__ == '__main__':
-    main()
+    print(predict_image2("C:\\Users\\ANJA\\Downloads\\model.jpg"))
 

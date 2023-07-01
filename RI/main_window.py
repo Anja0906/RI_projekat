@@ -2,11 +2,14 @@ from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import Qt, QPoint, QPointF
 
+import models
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.image_path = None
         self.dragPosition = None
         self.dragging = False
         self.maximized = False
@@ -94,11 +97,18 @@ class MainWindow(QMainWindow):
             pixmap = QPixmap(file_path)
             self.image_label.setPixmap(pixmap.scaled(self.image_label.width(), self.image_label.height(),
                                                      Qt.AspectRatioMode.KeepAspectRatio))
-            # TODO: Ovde kod treba da pokupi sliku i da je sacuva
+            self.image_path = file_path
 
     def on_parse_click(self):
-        self.textbox.setText("Tekst sa slike je: ksjdklsfjdslkfjds")
-        # TODO: Ovde ide kod koji kupi sliku i parsira je
+        if hasattr(self, 'image_path'):
+            # Predict labels using both models
+            label_boxing, label_recognition = models.predict_image(self.image_path)
+            # Display the predictions
+            self.textbox.setText(
+                f"Boxing model prediction: {label_boxing}, Recognition model prediction: {label_recognition}")
+        else:
+            # Error message
+            QMessageBox.about(self, "Error", "Please select an image first")
 
     def set_prompt(self):
         self.textbox.setStyleSheet("""
