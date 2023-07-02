@@ -88,12 +88,9 @@ chars = np.array([c[0] for c in chars], dtype="float32")
 preds = model.predict(chars)
 # define the list of label names
 labelNames = "0123456789"
-labelNames += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+labelNames += "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuwxyz"
 labelNames = [l for l in labelNames]
-# loop over the predictions and bounding box locations together
 for (pred, (x, y, w, h)) in zip(preds, boxes):
-	# find the index of the label with the largest corresponding
-	# probability, then extract the probability and label
 	i = np.argmax(pred)
 	prob = pred[i]
 	label = labelNames[i]
@@ -106,21 +103,19 @@ for (pred, (x, y, w, h)) in zip(preds, boxes):
 	cv2.imshow("Image", image)
 
 cv2.waitKey(0)
-
+#
+# from emnist import extract_training_samples
 # import tensorflow as tf
 #
 # # Load and preprocess data
-# from keras.datasets import mnist
 # from keras.utils import to_categorical
 #
-# (train_images, train_labels), (test_images, test_labels) = mnist.load_data()
-# train_images = train_images.reshape((60000, 28, 28, 1))
+# train_images, train_labels = extract_training_samples('byclass')
+# train_images = train_images.reshape((train_images.shape[0], 28, 28, 1))
 # train_images = train_images.astype('float32') / 255
-# test_images = test_images.reshape((10000, 28, 28, 1))
-# test_images = test_images.astype('float32') / 255
-#
 # train_labels = to_categorical(train_labels)
-# test_labels = to_categorical(test_labels)
+#
+# # You'd also want to load and preprocess the testing samples...
 #
 # # Define CNN model
 # model = tf.keras.models.Sequential()
@@ -132,15 +127,14 @@ cv2.waitKey(0)
 #
 # model.add(tf.keras.layers.Flatten())
 # model.add(tf.keras.layers.Dense(64, activation='relu'))
-# model.add(tf.keras.layers.Dense(10, activation='softmax')) # 10 classes for digits 0-9
+# model.add(tf.keras.layers.Dense(62, activation='softmax')) # 62 classes for digits 0-9 + letters A-Z (upper and lower case)
 #
 # # Compile the model
 # model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+# model.save("my_model.h5")
 #
 # # Train the model
 # model.fit(train_images, train_labels, epochs=5, batch_size=64)
-# model.save("my_model.h5")
 #
-# # Evaluate the model
-# test_loss, test_acc = model.evaluate(test_images, test_labels)
-# print('Test accuracy:', test_acc)
+# # Don't forget to evaluate the model on your testing samples...
+
