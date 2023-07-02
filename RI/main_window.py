@@ -1,8 +1,7 @@
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import Qt, QPoint, QPointF
-
-import models
+import model
 
 
 class MainWindow(QMainWindow):
@@ -101,13 +100,10 @@ class MainWindow(QMainWindow):
 
     def on_parse_click(self):
         if hasattr(self, 'image_path'):
-            # Predict labels using both models
-            label_boxing, label_recognition = models.predict_image(self.image_path)
-            # Display the predictions
+            label_recognition = model.predict_image(self.image_path)
             self.textbox.setText(
-                f"Boxing model prediction: {label_boxing}, Recognition model prediction: {label_recognition}")
+                f"Predikcija teksta: {label_recognition}")
         else:
-            # Error message
             QMessageBox.about(self, "Error", "Please select an image first")
 
     def set_prompt(self):
@@ -121,7 +117,7 @@ class MainWindow(QMainWindow):
                 """)
         self.textbox.setMinimumHeight(250)
         self.textbox.setDisabled(True)
-        layout = QGridLayout()
+        layout = QGridLayout(self)
         layout.addWidget(self.textbox, 0, 0)
         layout.setRowStretch(0, 1)
         self.content_layout.addLayout(layout, 4)
@@ -219,7 +215,6 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("background-color: white;")
         self.setWindowFlags(Qt.WindowType.CustomizeWindowHint)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-
 
     def maximize_restore(self):
         if not self.maximized:
