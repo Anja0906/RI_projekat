@@ -4,7 +4,6 @@ import keras
 from PIL import Image
 from keras.callbacks import CSVLogger
 from keras.datasets import mnist
-from keras.saving.saving_api import load_model
 from keras.utils import img_to_array
 from sklearn.metrics import confusion_matrix
 from keras.layers import Input, Conv2D, MaxPooling2D, Dense, Flatten, Dropout

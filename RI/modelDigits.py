@@ -8,7 +8,7 @@ from keras.models import Sequential
 
 
 
-EPOCHS = 50
+EPOCHS = 5
 BATCH_SIZE = 64
 BATCH_PER_EPOCH = 256
 VALID_RATIO = 0.2
