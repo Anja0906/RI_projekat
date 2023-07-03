@@ -1,6 +1,6 @@
 from emnist import extract_training_samples
 import tensorflow as tf
-from keras.src.saving.saving_api import load_model
+from keras.saving.saving_api import load_model
 from keras.utils import to_categorical
 from imutils.contours import sort_contours
 import numpy as np
