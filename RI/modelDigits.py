@@ -5,7 +5,7 @@ from sklearn.metrics import confusion_matrix
 from keras.layers import Input, Conv2D, MaxPooling2D, Dense, Flatten, Dropout
 from keras.models import Sequential
 
-EPOCHS = 5
+EPOCHS = 50
 BATCH_SIZE = 64
 BATCH_PER_EPOCH = 256
 VALID_RATIO = 0.2
@@ -16,7 +16,7 @@ def load_dataset():
     (trainX, trainY), (testX, testY) = mnist.load_data()
     trainY = keras.utils.to_categorical(trainY)
     testY = keras.utils.to_categorical(testY)
-    trainX = trainX.reshape((trainX.shape[0], 28, 28, 1))  # Fix the reshape operation here
+    trainX = trainX.reshape((trainX.shape[0], 28, 28, 1))
     testX = testX.reshape((testX.shape[0], 28, 28, 1))
     return trainX, trainY, testX, testY
 
@@ -37,6 +37,9 @@ def define_model():
     return model
 
 
+import matplotlib.pyplot as plt
+
+
 def train():
     trainX, trainY, testX, testY = load_dataset()
     model = define_model()
@@ -47,9 +50,28 @@ def train():
                                                          monitor="val_accuracy", mode="max",
                                                          save_best_only=True)
     hist_log_callback = CSVLogger(filename="historydigits.csv", append=False)
-    model.fit(trainX, trainY, validation_split=VALID_RATIO, epochs=EPOCHS, batch_size=BATCH_SIZE,
+    history = model.fit(trainX, trainY, validation_split=VALID_RATIO, epochs=EPOCHS, batch_size=BATCH_SIZE,
                         steps_per_epoch=BATCH_PER_EPOCH, shuffle=True,
                         callbacks=[chkpt_lrn_callback, chkpt_val_callback, hist_log_callback], verbose=2)
+
+    # Plot accuracy
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('Model Accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.legend(['Train', 'Validation'], loc='upper left')
+    plt.show()
+
+    # Plot loss
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('Model Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend(['Train', 'Validation'], loc='upper left')
+    plt.show()
+
     valid_model = keras.models.load_model("model_valid.hdf5")
     valid_model.evaluate(testX, testY, batch_size=BATCH_SIZE, verbose=2)
     predY = model.predict(testX, batch_size=BATCH_SIZE, verbose=2)
@@ -58,5 +80,4 @@ def train():
     cm = confusion_matrix(testY, predY)
     print(cm)
 
-
-#train()
+train()
