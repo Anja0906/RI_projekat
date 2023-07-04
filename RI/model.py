@@ -1,12 +1,12 @@
 from emnist import extract_training_samples
 import tensorflow as tf
-from keras.saving.saving_api import load_model
+from keras.src.saving.saving_api import load_model
 from keras.utils import to_categorical
 from imutils.contours import sort_contours
 import numpy as np
 import imutils
 import cv2
-
+import matplotlib.pyplot as plt
 
 def first_model_training():
     train_images, train_labels = extract_training_samples('byclass')
@@ -24,8 +24,29 @@ def first_model_training():
     model.add(tf.keras.layers.Dense(64, activation='relu'))
     model.add(tf.keras.layers.Dense(62, activation='softmax'))
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    model.fit(train_images, train_labels, epochs=10, batch_size=64)
+    history = model.fit(train_images, train_labels, epochs=50, batch_size=64, validation_split=0.2)
     model.save("my_model.h5")
+
+    # Plotting the training and validation loss
+    plt.figure()
+    plt.plot(history.history['loss'], label='train_loss')
+    plt.plot(history.history['val_loss'], label='val_loss')
+    plt.title('Training and validation loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.show()
+
+    # Plotting the training and validation accuracy
+    plt.figure()
+    plt.plot(history.history['accuracy'], label='train_accuracy')
+    plt.plot(history.history['val_accuracy'], label='val_accuracy')
+    plt.title('Training and validation accuracy')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.legend()
+    plt.show()
+
 
 
 def predict_image(image_path):
@@ -80,4 +101,4 @@ def predict_image(image_path):
     return "".join(characters)
 
 
-# first_model_training()
+first_model_training()
